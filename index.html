@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Track Maintenance Painter</title>
     <style>
-        /* ... (keep the previous CSS styles) ... */
+        /* ... (keep the previous styles) ... */
     </style>
 </head>
 <body>
@@ -59,7 +59,7 @@
             document.getElementById('clearInstructions').textContent = 'Long press to clear all paint';
         } else {
             canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mousemove', draw);
             canvas.addEventListener('mouseup', stopDrawing);
             canvas.addEventListener('mouseout', stopDrawing);
             canvas.addEventListener('contextmenu', clearPaint);
@@ -79,43 +79,36 @@
         }
 
         function handleTouchMove(e) {
-            if (!isDrawing) return;
             e.preventDefault();
+            if (!isDrawing) return;
+            clearTimeout(longPressTimer);
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
             const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
             const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
-            clearTimeout(longPressTimer);
-            drawLine(lastX, lastY, x, y);
-            [lastX, lastY] = [x, y];
+            draw(x, y);
         }
 
         function startDrawing(e) {
             isDrawing = true;
             const rect = canvas.getBoundingClientRect();
-            [lastX, lastY] = [
-                (e.clientX - rect.left) * (canvas.width / rect.width),
-                (e.clientY - rect.top) * (canvas.height / rect.height)
-            ];
+            lastX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            lastY = (e.clientY - rect.top) * (canvas.height / rect.height);
         }
 
-        function handleMouseMove(e) {
+        function draw(x, y) {
             if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-            drawLine(lastX, lastY, x, y);
-            [lastX, lastY] = [x, y];
-        }
-
-        function drawLine(x1, y1, x2, y2) {
+            
             ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
             ctx.strokeStyle = currentColor;
             ctx.lineWidth = 5;
             ctx.lineCap = 'round';
             ctx.stroke();
+
+            lastX = x;
+            lastY = y;
         }
 
         function stopDrawing() {
