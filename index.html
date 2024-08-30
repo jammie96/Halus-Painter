@@ -5,11 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Track Maintenance Painter</title>
     <style>
-        /* ... (keep the previous styles) ... */
+        body {
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        #canvas-container {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        canvas {
+            border: 1px solid black;
+            width: 100%;
+            height: auto;
+        }
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 800px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .color-button {
+            width: 80px;
+            height: 40px;
+        }
+        #maintenanceCheck {
+            margin: 5px;
+        }
+        #orientation-message {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            text-align: center;
+            z-index: 1000;
+        }
+        @media only screen and (max-width: 600px) {
+            #controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            button, #maintenanceCheck {
+                width: 80%;
+                max-width: 300px;
+            }
+            .color-button {
+                width: 80%;
+                max-width: 300px;
+                height: 40px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- ... (keep the previous HTML structure) ... -->
+    <div id="orientation-message">
+        Please rotate your device to portrait mode.
+    </div>
+    <h1>Track Maintenance Painter</h1>
+    <div id="controls">
+        <button class="color-button" onclick="setColor('blue')" style="background-color: blue;">Muddy Area</button>
+        <button class="color-button" onclick="setColor('red')" style="background-color: red;">Obstacles</button>
+        <button class="color-button" onclick="setColor('green')" style="background-color: green;">Require Fixing</button>
+        <div>
+            <input type="checkbox" id="maintenanceCheck" onchange="toggleMaintenanceText()">
+            <label for="maintenanceCheck">Track Needs Maintenance</label>
+        </div>
+        <button onclick="saveImage()" style="background-color: #4CAF50;">Save Image</button>
+        <button onclick="shareToWhatsApp()" style="background-color: #25D366;">Share to WhatsApp</button>
+    </div>
+    <div id="canvas-container">
+        <canvas id="canvas" width="800" height="300"></canvas>
+    </div>
+    <p id="clearInstructions"></p>
 
     <script>
         const canvas = document.getElementById('canvas');
@@ -35,6 +124,7 @@
         function resizeCanvas() {
             const container = document.getElementById('canvas-container');
             if (isMobile) {
+                // For S23 Ultra in portrait (adjusted to 25% of original height)
                 canvas.width = 720;
                 canvas.height = 370;
             } else {
@@ -53,8 +143,8 @@
         }
 
         if (isMobile) {
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
             canvas.addEventListener('touchend', stopDrawing);
             document.getElementById('clearInstructions').textContent = 'Long press to clear all paint';
         } else {
@@ -68,32 +158,31 @@
 
         let longPressTimer;
 
-        function handleTouchStart(e) {
+        function handleTouch(e) {
             e.preventDefault();
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            lastX = (touch.clientX - rect.left) * (canvas.width / rect.width);
-            lastY = (touch.clientY - rect.top) * (canvas.height / rect.height);
-            isDrawing = true;
-            longPressTimer = setTimeout(clearPaint, 1000);
-        }
-
-        function handleTouchMove(e) {
-            e.preventDefault();
-            if (!isDrawing) return;
-            clearTimeout(longPressTimer);
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
             const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
             const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
-            draw(x, y);
+
+            if (e.type === 'touchstart') {
+                isDrawing = true;
+                [lastX, lastY] = [x, y];
+                longPressTimer = setTimeout(clearPaint, 1000);
+            } else if (e.type === 'touchmove') {
+                clearTimeout(longPressTimer);
+                draw(x, y);
+            }
         }
 
         function startDrawing(e) {
             isDrawing = true;
             const rect = canvas.getBoundingClientRect();
-            lastX = (e.clientX - rect.left) * (canvas.width / rect.width);
-            lastY = (e.clientY - rect.top) * (canvas.height / rect.height);
+            [lastX, lastY] = [
+                (e.clientX - rect.left) * (canvas.width / rect.width),
+                (e.clientY - rect.top) * (canvas.height / rect.height)
+            ];
+            draw(lastX, lastY);
         }
 
         function draw(x, y) {
@@ -107,8 +196,7 @@
             ctx.lineCap = 'round';
             ctx.stroke();
 
-            lastX = x;
-            lastY = y;
+            [lastX, lastY] = [x, y];
         }
 
         function stopDrawing() {
@@ -119,13 +207,13 @@
         }
 
         function clearPaint(e) {
-            if (e) e.preventDefault();
-            drawBackground();
-            toggleMaintenanceText();
+            if (e) e.preventDefault(); // Prevent the context menu from appearing
+            drawBackground(); // Redraw the background, effectively clearing all paint
+            toggleMaintenanceText(); // Redraw maintenance text if checkbox is checked
         }
 
         function toggleMaintenanceText() {
-            drawBackground();
+            drawBackground(); // Clear the canvas and redraw the background
             const maintenanceCheck = document.getElementById('maintenanceCheck');
             if (maintenanceCheck.checked) {
                 ctx.textAlign = 'center';
@@ -136,14 +224,17 @@
                 const x = canvas.width / 2;
                 const y = 10;
                 
+                // Draw background
                 ctx.fillStyle = 'black';
                 const textWidth = ctx.measureText(text).width;
                 ctx.fillRect(x - textWidth / 2 - 5, y - 2, textWidth + 10, 30);
                 
+                // Draw text outline
                 ctx.strokeStyle = 'black';
                 ctx.lineWidth = 4;
                 ctx.strokeText(text, x, y);
                 
+                // Draw text
                 ctx.fillStyle = 'white';
                 ctx.fillText(text, x, y);
             }
