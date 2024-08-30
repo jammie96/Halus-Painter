@@ -2,26 +2,67 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Track Maintenance Painter</title>
     <style>
         body {
+            margin: 0;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 70vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         canvas {
             border: 1px solid black;
+            max-width: 100%;
+            max-height: 100%;
         }
         #controls {
-            margin: 20px 0;
+            margin: 10px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button, input[type="checkbox"] {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #orientation-message {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            text-align: center;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
+    <div id="orientation-message">
+        Please rotate your device to landscape mode.
+    </div>
     <h1>Track Maintenance Painter</h1>
-    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
     <div id="controls">
         <button onclick="setColor('blue')">Blue (Muddy Area)</button>
         <button onclick="setColor('red')">Red (Obstacles)</button>
@@ -30,7 +71,7 @@
     </div>
     <button onclick="saveImage()">Save Image</button>
     <button onclick="shareImage()">Share to Social Media</button>
-    <p>Right-click to clear all paint</p>
+    <p>Long press to clear all paint</p>
 
     <script>
         const canvas = document.getElementById('canvas');
@@ -41,6 +82,7 @@
         // Load the background image
         const img = new Image();
         img.onload = function() {
+            resizeCanvas();
             drawBackground();
         }
         img.onerror = function() {
@@ -49,6 +91,13 @@
             ctx.fillText('Error loading image. Please ensure "halus.png" exists.', 10, 50);
         }
         img.src = 'halus.png';
+
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawBackground();
+        }
 
         function drawBackground() {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -62,19 +111,37 @@
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('contextmenu', clearPaint);
+        canvas.addEventListener('touchstart', handleTouch);
+        canvas.addEventListener('touchmove', handleTouch);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
-        function startDrawing(e) {
-            if (e.button !== 0) return; // Only draw with left mouse button
-            isDrawing = true;
-            draw(e);
+        let longPressTimer;
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            if (e.type === 'touchstart') {
+                isDrawing = true;
+                draw(x, y);
+                longPressTimer = setTimeout(clearPaint, 1000);
+            } else if (e.type === 'touchmove') {
+                clearTimeout(longPressTimer);
+                draw(x, y);
+            }
         }
 
-        function draw(e) {
+        function startDrawing(e) {
+            isDrawing = true;
+            draw(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
+        }
+
+        function draw(x, y) {
             if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
             
             ctx.strokeStyle = currentColor;
             ctx.lineWidth = 5;
@@ -88,16 +155,16 @@
         function stopDrawing() {
             isDrawing = false;
             ctx.beginPath();
+            clearTimeout(longPressTimer);
         }
 
-        function clearPaint(e) {
-            e.preventDefault(); // Prevent the context menu from appearing
-            drawBackground(); // Redraw the background, effectively clearing all paint
-            toggleMaintenanceText(); // Redraw maintenance text if checkbox is checked
+        function clearPaint() {
+            drawBackground();
+            toggleMaintenanceText();
         }
 
         function toggleMaintenanceText() {
-            drawBackground(); // Clear the canvas and redraw the background
+            drawBackground();
             const maintenanceCheck = document.getElementById('maintenanceCheck');
             if (maintenanceCheck.checked) {
                 ctx.font = '24px Arial';
@@ -133,6 +200,21 @@
                 }
             });
         }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function checkOrientation() {
+            const orientationMessage = document.getElementById('orientation-message');
+            if (window.innerHeight > window.innerWidth) {
+                orientationMessage.style.display = 'flex';
+            } else {
+                orientationMessage.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+        checkOrientation();
     </script>
 </body>
 </html>
