@@ -7,32 +7,29 @@
     <style>
         body {
             margin: 0;
-            padding: 0;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             font-family: Arial, sans-serif;
-            height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
         }
         #canvas-container {
             width: 100%;
-            height: 70vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            max-width: 800px;
+            margin-bottom: 10px;
+            position: relative;
         }
         canvas {
             border: 1px solid black;
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: auto;
         }
         #controls {
-            margin: 10px 0;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
+            margin-bottom: 10px;
         }
         button, input[type="checkbox"] {
             margin: 5px;
@@ -53,31 +50,46 @@
             text-align: center;
             z-index: 1000;
         }
+        @media only screen and (max-width: 600px) {
+            #controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            button, input[type="checkbox"] {
+                width: 80%;
+                max-width: 300px;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="orientation-message">
-        Please rotate your device to landscape mode.
+        Please rotate your device to portrait mode.
     </div>
     <h1>Track Maintenance Painter</h1>
     <div id="canvas-container">
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas" width="800" height="600"></canvas>
     </div>
     <div id="controls">
         <button onclick="setColor('blue')">Blue (Muddy Area)</button>
         <button onclick="setColor('red')">Red (Obstacles)</button>
         <button onclick="setColor('green')">Green (Require Fixing)</button>
-        <input type="checkbox" id="maintenanceCheck" onchange="toggleMaintenanceText()"> Track Needs Maintenance
+        <div>
+            <input type="checkbox" id="maintenanceCheck" onchange="toggleMaintenanceText()">
+            <label for="maintenanceCheck">Track Needs Maintenance</label>
+        </div>
     </div>
     <button onclick="saveImage()">Save Image</button>
-    <button onclick="shareImage()">Share to Social Media</button>
-    <p>Long press to clear all paint</p>
+    <button onclick="shareToWhatsApp()">Share to WhatsApp</button>
+    <p id="clearInstructions"></p>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
         let currentColor = 'blue';
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        let lastX, lastY;
 
         // Load the background image
         const img = new Image();
@@ -94,8 +106,14 @@
 
         function resizeCanvas() {
             const container = document.getElementById('canvas-container');
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+            if (isMobile) {
+                // For S23 Ultra in portrait (adjust as needed)
+                canvas.width = 1440;
+                canvas.height = 2960;
+            } else {
+                canvas.width = container.clientWidth;
+                canvas.height = (canvas.width * 600) / 800; // Maintain aspect ratio
+            }
             drawBackground();
         }
 
@@ -107,14 +125,19 @@
             currentColor = color;
         }
 
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('touchstart', handleTouch);
-        canvas.addEventListener('touchmove', handleTouch);
-        canvas.addEventListener('touchend', stopDrawing);
-        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+        if (isMobile) {
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+            document.getElementById('clearInstructions').textContent = 'Long press to clear all paint';
+        } else {
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            canvas.addEventListener('contextmenu', clearPaint);
+            document.getElementById('clearInstructions').textContent = 'Right-click to clear all paint';
+        }
 
         let longPressTimer;
 
@@ -122,12 +145,12 @@
             e.preventDefault();
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
+            const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
 
             if (e.type === 'touchstart') {
                 isDrawing = true;
-                draw(x, y);
+                [lastX, lastY] = [x, y];
                 longPressTimer = setTimeout(clearPaint, 1000);
             } else if (e.type === 'touchmove') {
                 clearTimeout(longPressTimer);
@@ -136,40 +159,67 @@
         }
 
         function startDrawing(e) {
+            if (e.button !== 0) return; // Only draw with left mouse button
             isDrawing = true;
-            draw(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
+            const rect = canvas.getBoundingClientRect();
+            [lastX, lastY] = [
+                (e.clientX - rect.left) * (canvas.width / rect.width),
+                (e.clientY - rect.top) * (canvas.height / rect.height)
+            ];
         }
 
         function draw(x, y) {
             if (!isDrawing) return;
             
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
             ctx.strokeStyle = currentColor;
             ctx.lineWidth = 5;
             ctx.lineCap = 'round';
-            ctx.lineTo(x, y);
             ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
+
+            [lastX, lastY] = [x, y];
         }
 
         function stopDrawing() {
             isDrawing = false;
-            ctx.beginPath();
-            clearTimeout(longPressTimer);
+            if (isMobile) {
+                clearTimeout(longPressTimer);
+            }
         }
 
-        function clearPaint() {
-            drawBackground();
-            toggleMaintenanceText();
+        function clearPaint(e) {
+            if (e) e.preventDefault(); // Prevent the context menu from appearing
+            drawBackground(); // Redraw the background, effectively clearing all paint
+            toggleMaintenanceText(); // Redraw maintenance text if checkbox is checked
         }
 
         function toggleMaintenanceText() {
-            drawBackground();
+            drawBackground(); // Clear the canvas and redraw the background
             const maintenanceCheck = document.getElementById('maintenanceCheck');
             if (maintenanceCheck.checked) {
-                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.font = 'bold 48px Arial';
+                
+                const text = 'Track Needs Maintenance';
+                const x = canvas.width / 2;
+                const y = 20;
+                
+                // Draw background
                 ctx.fillStyle = 'black';
-                ctx.fillText('Track Needs Maintenance', 10, 30);
+                const textWidth = ctx.measureText(text).width;
+                ctx.fillRect(x - textWidth / 2 - 10, y - 5, textWidth + 20, 60);
+                
+                // Draw text outline
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 8;
+                ctx.strokeText(text, x, y);
+                
+                // Draw text
+                ctx.fillStyle = 'white';
+                ctx.fillText(text, x, y);
             }
         }
 
@@ -184,31 +234,25 @@
             });
         }
 
-        function shareImage() {
+        function shareToWhatsApp() {
             canvas.toBlob(function(blob) {
-                const file = new File([blob], "track_maintenance.png", { type: "image/png" });
-                if (navigator.share) {
-                    navigator.share({
-                        files: [file],
-                        title: 'Track Maintenance Image',
-                        text: 'Check out this track maintenance image!'
-                    }).then(() => console.log('Share was successful.'))
-                    .catch((error) => console.log('Sharing failed', error));
-                } else {
-                    console.log('Web Share API not supported');
-                    alert('Sharing is not supported on this browser.');
-                }
+                const url = URL.createObjectURL(blob);
+                const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image! ${encodeURIComponent(url)}`;
+                window.location.href = whatsappUrl;
+                setTimeout(() => URL.revokeObjectURL(url), 100);
             });
         }
 
         window.addEventListener('resize', resizeCanvas);
 
         function checkOrientation() {
-            const orientationMessage = document.getElementById('orientation-message');
-            if (window.innerHeight > window.innerWidth) {
-                orientationMessage.style.display = 'flex';
-            } else {
-                orientationMessage.style.display = 'none';
+            if (isMobile) {
+                const orientationMessage = document.getElementById('orientation-message');
+                if (window.innerWidth > window.innerHeight) {
+                    orientationMessage.style.display = 'flex';
+                } else {
+                    orientationMessage.style.display = 'none';
+                }
             }
         }
 
