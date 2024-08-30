@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Maintenance Painter</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+        #controls {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Track Maintenance Painter</h1>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="controls">
+        <button onclick="setColor('blue')">Blue (Muddy Area)</button>
+        <button onclick="setColor('red')">Red (Obstacles)</button>
+        <button onclick="setColor('green')">Green (Require Fixing)</button>
+        <input type="checkbox" id="maintenanceCheck" onchange="toggleMaintenanceText()"> Track Needs Maintenance
+    </div>
+    <button onclick="saveImage()">Save Image</button>
+    <button onclick="shareImage()">Share to Social Media</button>
+    <p>Right-click to clear all paint</p>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentColor = 'blue';
+
+        // Load the background image
+        const img = new Image();
+        img.onload = function() {
+            drawBackground();
+        }
+        img.onerror = function() {
+            console.error('Error loading the image');
+            ctx.font = '20px Arial';
+            ctx.fillText('Error loading image. Please ensure "halus.png" exists.', 10, 50);
+        }
+        img.src = 'halus.png';
+
+        function drawBackground() {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+
+        function setColor(color) {
+            currentColor = color;
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('contextmenu', clearPaint);
+
+        function startDrawing(e) {
+            if (e.button !== 0) return; // Only draw with left mouse button
+            isDrawing = true;
+            draw(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.beginPath();
+        }
+
+        function clearPaint(e) {
+            e.preventDefault(); // Prevent the context menu from appearing
+            drawBackground(); // Redraw the background, effectively clearing all paint
+            toggleMaintenanceText(); // Redraw maintenance text if checkbox is checked
+        }
+
+        function toggleMaintenanceText() {
+            drawBackground(); // Clear the canvas and redraw the background
+            const maintenanceCheck = document.getElementById('maintenanceCheck');
+            if (maintenanceCheck.checked) {
+                ctx.font = '24px Arial';
+                ctx.fillStyle = 'black';
+                ctx.fillText('Track Needs Maintenance', 10, 30);
+            }
+        }
+
+        function saveImage() {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = 'track_maintenance.png';
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        function shareImage() {
+            canvas.toBlob(function(blob) {
+                const file = new File([blob], "track_maintenance.png", { type: "image/png" });
+                if (navigator.share) {
+                    navigator.share({
+                        files: [file],
+                        title: 'Track Maintenance Image',
+                        text: 'Check out this track maintenance image!'
+                    }).then(() => console.log('Share was successful.'))
+                    .catch((error) => console.log('Sharing failed', error));
+                } else {
+                    console.log('Web Share API not supported');
+                    alert('Sharing is not supported on this browser.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
