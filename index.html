@@ -30,6 +30,7 @@
         .color-button {
             color: white;
             border: none;
+            cursor: pointer;
         }
         #blue-button { background-color: blue; }
         #red-button { background-color: red; }
@@ -43,6 +44,7 @@
             border: 1px solid black;
             width: 100%;
             height: 100%;
+            display: block; /* Ensures the canvas takes up space */
         }
     </style>
 </head>
@@ -66,18 +68,70 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let currentColor = 'blue';
+        let isDrawing = false;
+        let lastX, lastY;
 
         function resizeCanvas() {
             const container = document.getElementById('canvas-container');
             canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
-            drawBackground();
+            canvas.height = container.clientHeight; // Set canvas height to container height
+            drawBackground(); // Redraw background after resizing
         }
 
-        // Rest of your JavaScript code...
+        // Load the background image
+        const img = new Image();
+        img.onload = function() {
+            resizeCanvas();
+            drawBackground();
+        }
+        img.src = 'halus.png'; // Ensure this image path is correct
 
-        window.addEventListener('load', resizeCanvas);
+        function drawBackground() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+
+        function setColor(color) {
+            currentColor = color;
+        }
+
+        // Event listeners for drawing
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            lastX = x;
+            lastY = y;
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
         window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', resizeCanvas);
     </script>
 </body>
 </html>
