@@ -227,4 +227,38 @@
             canvas.toBlob(function(blob) {
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                link.download = 'track_
+                link.download = 'track_maintenance.png';
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        function shareToWhatsApp() {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image! ${encodeURIComponent(url)}`;
+                window.location.href = whatsappUrl;
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+            });
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function checkOrientation() {
+            if (isMobile) {
+                const orientationMessage = document.getElementById('orientation-message');
+                if (window.innerWidth > window.innerHeight) {
+                    orientationMessage.style.display = 'flex';
+                } else {
+                    orientationMessage.style.display = 'none';
+                }
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+        checkOrientation();
+    </script>
+</body>
+</html>
