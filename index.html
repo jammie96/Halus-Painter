@@ -30,11 +30,23 @@
             flex-wrap: wrap;
             justify-content: center;
             margin-bottom: 10px;
+            width: 100%;
+            max-width: 800px;
         }
-        button, input[type="checkbox"] {
+        button {
             margin: 5px;
             padding: 10px;
             font-size: 16px;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .color-button {
+            width: 80px;
+            height: 40px;
+        }
+        #maintenanceCheck {
+            margin: 5px;
         }
         #orientation-message {
             display: none;
@@ -55,9 +67,14 @@
                 flex-direction: column;
                 align-items: center;
             }
-            button, input[type="checkbox"] {
+            button, #maintenanceCheck {
                 width: 80%;
                 max-width: 300px;
+            }
+            .color-button {
+                width: 80%;
+                max-width: 300px;
+                height: 40px;
             }
         }
     </style>
@@ -67,20 +84,20 @@
         Please rotate your device to portrait mode.
     </div>
     <h1>Track Maintenance Painter</h1>
-    <div id="canvas-container">
-        <canvas id="canvas" width="800" height="300"></canvas>
-    </div>
     <div id="controls">
-        <button onclick="setColor('blue')">Blue (Muddy Area)</button>
-        <button onclick="setColor('red')">Red (Obstacles)</button>
-        <button onclick="setColor('green')">Green (Require Fixing)</button>
+        <button class="color-button" onclick="setColor('blue')" style="background-color: blue;">Muddy Area</button>
+        <button class="color-button" onclick="setColor('red')" style="background-color: red;">Obstacles</button>
+        <button class="color-button" onclick="setColor('green')" style="background-color: green;">Require Fixing</button>
         <div>
             <input type="checkbox" id="maintenanceCheck" onchange="toggleMaintenanceText()">
             <label for="maintenanceCheck">Track Needs Maintenance</label>
         </div>
+        <button onclick="saveImage()" style="background-color: #4CAF50;">Save Image</button>
+        <button onclick="shareToWhatsApp()" style="background-color: #25D366;">Share to WhatsApp</button>
     </div>
-    <button onclick="saveImage()">Save Image</button>
-    <button onclick="shareToWhatsApp()">Share to WhatsApp</button>
+    <div id="canvas-container">
+        <canvas id="canvas" width="800" height="300"></canvas>
+    </div>
     <p id="clearInstructions"></p>
 
     <script>
