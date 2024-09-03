@@ -70,6 +70,7 @@
         let currentColor = 'blue';
         let isDrawing = false;
         let lastX, lastY;
+        let showMaintenanceText = false;
 
         function resizeCanvas() {
             const container = document.getElementById('canvas-container');
@@ -89,10 +90,21 @@
         function drawBackground() {
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            if (showMaintenanceText) {
+                ctx.fillStyle = 'red'; // Set text color
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Track needs maintenance', canvas.width / 2, 50); // Draw text at the top middle
+            }
         }
 
         function setColor(color) {
             currentColor = color;
+        }
+
+        function toggleMaintenanceText() {
+            showMaintenanceText = document.getElementById('maintenanceCheck').checked;
+            drawBackground(); // Redraw background to show/hide text
         }
 
         // Event listeners for drawing (Mouse)
@@ -138,6 +150,13 @@
 
         function stopDrawing() {
             isDrawing = false;
+        }
+
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = 'halus.png';
+            link.href = canvas.toDataURL();
+            link.click();
         }
 
         window.addEventListener('resize', resizeCanvas);
