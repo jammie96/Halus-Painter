@@ -160,11 +160,37 @@
         }
 
         function shareToWhatsApp() {
+            // Convert canvas to Data URL
             const dataURL = canvas.toDataURL('image/png');
-            const message = encodeURIComponent("Check out this image of the track!");
-            const whatsappURL = `https://api.whatsapp.com/send?text=${message}%0A${dataURL}`;
-            window.open(whatsappURL, '_blank');
+        
+            // Create a Blob from the Data URL
+            fetch(dataURL)
+                .then(res => res.blob())
+                .then(blob => {
+                    // Create a FormData object to send the image
+                    const formData = new FormData();
+                    formData.append('image', blob, 'halus.png');
+        
+                    // Replace 'YOUR_UPLOAD_ENDPOINT' with your actual upload endpoint
+                    fetch('YOUR_UPLOAD_ENDPOINT', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Assuming the server responds with a URL to the uploaded image
+                        const imageUrl = data.imageUrl; // Adjust according to your response structure
+                        const message = encodeURIComponent("Check out this image of the track!");
+                        const whatsappURL = `https://api.whatsapp.com/send?text=${message}%0A${imageUrl}`;
+                        window.open(whatsappURL, '_blank');
+                    })
+                    .catch(error => {
+                        console.error('Error uploading image:', error);
+                        alert('Failed to upload image. Please try again.');
+                    });
+                });
         }
+
 
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('load', resizeCanvas);
