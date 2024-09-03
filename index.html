@@ -159,6 +159,13 @@
             link.click();
         }
 
+        function shareToWhatsApp() {
+            const dataURL = canvas.toDataURL('image/png');
+            const message = encodeURIComponent("Check out this image of the track!");
+            const whatsappURL = `https://api.whatsapp.com/send?text=${message}%0A${dataURL}`;
+            window.open(whatsappURL, '_blank');
+        }
+
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('load', resizeCanvas);
     </script>
