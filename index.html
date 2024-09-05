@@ -114,22 +114,22 @@
         
                 // Draw the text outline
                 ctx.strokeStyle = 'black'; // Outline color
-                ctx.lineWidth = 2; // Outline width
+                ctx.lineWidth = 4; // Increased outline width
                 ctx.strokeText(text, textX, textY); // Draw the outline
                 ctx.fillText(text, textX, textY); // Draw the text on top
             }
         
-            // Display the current date at the bottom right
+            // Display the current date and time at the bottom right
             const now = new Date();
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const dateString = `${now.getDate()}-${months[now.getMonth()]}-${now.getFullYear()}`;
+            const dateString = `${now.getDate()}-${months[now.getMonth()]}-${now.getFullYear()}, ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             const dateX = canvas.width - 10; // X position (10 pixels from the right)
             const dateY = canvas.height - 10; // Y position (10 pixels from the bottom)
         
             ctx.fillStyle = 'black'; // Text color for date
             ctx.font = '16px Arial'; // Font size and family
             ctx.textAlign = 'right'; // Align text to the right
-            ctx.fillText(dateString, dateX, dateY); // Draw the date
+            ctx.fillText(dateString, dateX, dateY); // Draw the date and time
         }
 
         function setColor(color) {
