@@ -123,12 +123,14 @@
             const now = new Date();
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const dateString = `${now.getDate()}-${months[now.getMonth()]}-${now.getFullYear()}, ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const dateX = canvas.width - 10; // X position (10 pixels from the right)
-            const dateY = canvas.height - 10; // Y position (10 pixels from the bottom)
+            const dateX = canvas.width - 20; // Adjusted X position (20 pixels from the right)
+            const dateY = canvas.height - 20; // Adjusted Y position (20 pixels from the bottom)
         
             ctx.fillStyle = 'black'; // Text color for date
-            ctx.font = '16px Arial'; // Font size and family
+            ctx.font = '20px Arial'; // Increased font size
+            ctx.lineWidth = 2; // Increased outline width
             ctx.textAlign = 'right'; // Align text to the right
+            ctx.strokeText(dateString, dateX, dateY); // Draw the outline
             ctx.fillText(dateString, dateX, dateY); // Draw the date and time
         }
 
