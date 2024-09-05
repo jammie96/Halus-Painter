@@ -91,21 +91,26 @@
         function drawBackground() {
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
             if (showMaintenanceText) {
                 const text = 'Track needs maintenance';
                 const textX = canvas.width / 2;
                 const textY = 50;
         
-                // Set the background color
-                ctx.fillStyle = '#D3D3D3'; // Light grey background
-                const textWidth = ctx.measureText(text).width; // Get the width of the text
-                const textHeight = 30; // Approximate height for the text
-                ctx.fillRect(textX - textWidth / 2 - 10, textY - textHeight / 2 - 5, textWidth + 20, textHeight + 10); // Draw background rectangle
-        
-                // Set the text color and outline
-                ctx.fillStyle = 'white'; // Text color
+                // Set the text properties
                 ctx.font = '30px Arial'; // Font size and family
                 ctx.textAlign = 'center'; // Center the text
+                ctx.fillStyle = 'white'; // Text color for filling
+                
+                // Measure the text dimensions
+                const textMetrics = ctx.measureText(text);
+                const textWidth = textMetrics.width; // Get the width of the text
+                const textHeight = parseInt(ctx.font, 10); // Get the height of the text from the font size
+        
+                // Set the background color
+                ctx.fillStyle = '#D3D3D3'; // Light grey background
+                const padding = 10; // Padding around the text
+                ctx.fillRect(textX - textWidth / 2 - padding, textY - textHeight - padding / 2, textWidth + padding * 2, textHeight + padding); // Draw background rectangle
         
                 // Draw the text outline
                 ctx.strokeStyle = 'black'; // Outline color
@@ -113,6 +118,24 @@
                 ctx.strokeText(text, textX, textY); // Draw the outline
                 ctx.fillText(text, textX, textY); // Draw the text on top
             }
+        
+            // Display the current date and time at the bottom left
+            const now = new Date();
+            const dateTime = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false // Use 24-hour format
+            });
+            const dateTimeX = 10; // X position
+            const dateTimeY = canvas.height - 10; // Y position (10 pixels from the bottom)
+        
+            ctx.fillStyle = 'black'; // Text color for date and time
+            ctx.font = '16px Arial'; // Font size and family
+            ctx.textAlign = 'left'; // Align text to the left
+            ctx.fillText(dateTime, dateTimeX, dateTimeY); // Draw the date and time
         }
 
         function setColor(color) {
