@@ -162,8 +162,21 @@
         function shareToWhatsApp() {
             canvas.toBlob(function(blob) {
                 const url = URL.createObjectURL(blob);
-                const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image! ${encodeURIComponent(url)}`;
-                window.location.href = whatsappUrl;
+                const message = encodeURIComponent('Check out this track maintenance image!');
+                
+                // Check if the user is on a mobile device
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                    // For mobile devices
+                    const whatsappUrl = `whatsapp://send?text=${message} ${encodeURIComponent(url)}`;
+                    window.location.href = whatsappUrl;
+                } else {
+                    // For desktop devices
+                    const whatsappWebUrl = `https://web.whatsapp.com/send?text=${message} ${encodeURIComponent(url)}`;
+                    window.open(whatsappWebUrl, '_blank');
+                }
+                
                 setTimeout(() => URL.revokeObjectURL(url), 100);
             });
         }
