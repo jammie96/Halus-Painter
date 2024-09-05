@@ -59,6 +59,7 @@
         </div>
         <button onclick="saveImage()">Save Image</button>
         <button onclick="shareToWhatsApp()">Share to WhatsApp</button>
+        <button onclick="clearCanvas()">Clear Canvas</button> <!-- New Clear Button -->
     </div>
     <div id="canvas-container">
         <canvas id="canvas"></canvas>
@@ -181,6 +182,10 @@
             });
         }
 
+        function clearCanvas() {
+            showMaintenanceText = false; // Reset maintenance text visibility
+            drawBackground(); // Redraw the background without any drawings
+        }
 
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('load', resizeCanvas);
