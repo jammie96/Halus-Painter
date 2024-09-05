@@ -92,10 +92,26 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             if (showMaintenanceText) {
-                ctx.fillStyle = 'red'; // Set text color
-                ctx.font = '30px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('Track needs maintenance', canvas.width / 2, 50); // Draw text at the top middle
+                const text = 'Track needs maintenance';
+                const textX = canvas.width / 2;
+                const textY = 50;
+        
+                // Set the background color
+                ctx.fillStyle = '#D3D3D3'; // Light grey background
+                const textWidth = ctx.measureText(text).width; // Get the width of the text
+                const textHeight = 30; // Approximate height for the text
+                ctx.fillRect(textX - textWidth / 2 - 10, textY - textHeight / 2 - 5, textWidth + 20, textHeight + 10); // Draw background rectangle
+        
+                // Set the text color and outline
+                ctx.fillStyle = 'white'; // Text color
+                ctx.font = '30px Arial'; // Font size and family
+                ctx.textAlign = 'center'; // Center the text
+        
+                // Draw the text outline
+                ctx.strokeStyle = 'black'; // Outline color
+                ctx.lineWidth = 2; // Outline width
+                ctx.strokeText(text, textX, textY); // Draw the outline
+                ctx.fillText(text, textX, textY); // Draw the text on top
             }
         }
 
