@@ -119,23 +119,17 @@
                 ctx.fillText(text, textX, textY); // Draw the text on top
             }
         
-            // Display the current date and time at the bottom left
+            // Display the current date at the bottom right
             const now = new Date();
-            const dateTime = now.toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false // Use 24-hour format
-            });
-            const dateTimeX = 10; // X position
-            const dateTimeY = canvas.height - 10; // Y position (10 pixels from the bottom)
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dateString = `${now.getDate()}-${months[now.getMonth()]}-${now.getFullYear()}`;
+            const dateX = canvas.width - 10; // X position (10 pixels from the right)
+            const dateY = canvas.height - 10; // Y position (10 pixels from the bottom)
         
-            ctx.fillStyle = 'black'; // Text color for date and time
+            ctx.fillStyle = 'black'; // Text color for date
             ctx.font = '16px Arial'; // Font size and family
-            ctx.textAlign = 'left'; // Align text to the left
-            ctx.fillText(dateTime, dateTimeX, dateTimeY); // Draw the date and time
+            ctx.textAlign = 'right'; // Align text to the right
+            ctx.fillText(dateString, dateX, dateY); // Draw the date
         }
 
         function setColor(color) {
