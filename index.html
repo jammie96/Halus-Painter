@@ -197,25 +197,44 @@
 
         function shareToWhatsApp() {
             canvas.toBlob(function(blob) {
-                const url = URL.createObjectURL(blob);
-                const message = encodeURIComponent('Check out this track maintenance image!');
+                const file = new File([blob], "track_maintenance.png", { type: "image/png" });
                 
                 // Check if the user is on a mobile device
                 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                 
                 if (isMobile) {
-                    // For mobile devices
-                    const whatsappUrl = `whatsapp://send?text=${message} ${encodeURIComponent(url)}`;
-                    window.location.href = whatsappUrl;
+                    // For mobile devices, use the Web Share API to share the image
+                    if (navigator.share) {
+                        navigator.share({
+                            files: [file],
+                            title: 'Track Maintenance Image',
+                            text: 'Check out this track maintenance image!'
+                        }).then(() => console.log('Share was successful.'))
+                        .catch((error) => console.log('Sharing failed', error));
+                    } else {
+                        console.log('Web Share API not supported');
+                        alert('Sharing is not supported on this browser.');
+                    }
                 } else {
-                    // For desktop devices
-                    const whatsappWebUrl = `https://web.whatsapp.com/send?text=${message} ${encodeURIComponent(url)}`;
-                    window.open(whatsappWebUrl, '_blank');
+                    // For desktop devices, open WhatsApp Web and share the image
+                    const whatsappWebUrl = `https://web.whatsapp.com/send?text=Check out this track maintenance image!`;
+                    const formData = new FormData();
+                    formData.append('file', file);
+        
+                    fetch(whatsappWebUrl, {
+                        method: 'POST',
+                        body: formData
+                    }).then(response => {
+                        if (response.ok) {
+                            console.log('Image shared successfully on WhatsApp Web');
+                        } else {
+                            console.log('Failed to share image on WhatsApp Web');
+                        }
+                    }).catch(error => console.log('Error:', error));
                 }
-                
-                setTimeout(() => URL.revokeObjectURL(url), 100);
             });
         }
+
 
         function clearCanvas() {
             showMaintenanceText = false; // Reset maintenance text visibility
