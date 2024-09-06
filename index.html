@@ -188,44 +188,51 @@
             isDrawing = false;
         }
 
-        function saveImage() {
-            const link = document.createElement('a');
-            link.download = 'halus.png';
-            link.href = canvas.toDataURL();
-            link.click();
-        }
+        // function saveImage() {
+        //     const link = document.createElement('a');
+        //     link.download = 'halus.png';
+        //     link.href = canvas.toDataURL();
+        //     link.click();
+        // }
 
+        // function shareToWhatsApp() {
+        //   canvas.toBlob(function(blob) {
+        //     const file = new File([blob], "track_maintenance.png", { type: "image/png" });
+        
+        //     // Check if the user is on a mobile device
+        //     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        //     if (isMobile) {
+        //       // For mobile devices, use the Web Share API to share the image
+        //       // ...
+        //     } else {
+        //       // For desktop devices, use a CORS-proxy
+        //       const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        //       const whatsappWebUrl = `${corsProxyUrl}https://web.whatsapp.com/send?text=Check out this track maintenance image!`;
+        //       const formData = new FormData();
+        //       formData.append('file', file);
+        
+        //       fetch(whatsappWebUrl, {
+        //         method: 'POST',
+        //         body: formData
+        //       }).then(response => {
+        //         if (response.ok) {
+        //           console.log('Image shared successfully on WhatsApp Web');
+        //         } else {
+        //           console.log('Failed to share image on WhatsApp Web');
+        //         }
+        //       }).catch(error => console.log('Error:', error));
+        //     }
+        //   });
+        // }
         function shareToWhatsApp() {
-          canvas.toBlob(function(blob) {
-            const file = new File([blob], "track_maintenance.png", { type: "image/png" });
-        
-            // Check if the user is on a mobile device
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-            if (isMobile) {
-              // For mobile devices, use the Web Share API to share the image
-              // ...
-            } else {
-              // For desktop devices, use a CORS-proxy
-              const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
-              const whatsappWebUrl = `${corsProxyUrl}https://web.whatsapp.com/send?text=Check out this track maintenance image!`;
-              const formData = new FormData();
-              formData.append('file', file);
-        
-              fetch(whatsappWebUrl, {
-                method: 'POST',
-                body: formData
-              }).then(response => {
-                if (response.ok) {
-                  console.log('Image shared successfully on WhatsApp Web');
-                } else {
-                  console.log('Failed to share image on WhatsApp Web');
-                }
-              }).catch(error => console.log('Error:', error));
-            }
-          });
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image! ${encodeURIComponent(url)}`;
+                window.location.href = whatsappUrl;
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+            });
         }
-
 
         function clearCanvas() {
             showMaintenanceText = false; // Reset maintenance text visibility
