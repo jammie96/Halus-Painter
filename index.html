@@ -188,12 +188,12 @@
             isDrawing = false;
         }
 
-        // function saveImage() {
-        //     const link = document.createElement('a');
-        //     link.download = 'halus.png';
-        //     link.href = canvas.toDataURL();
-        //     link.click();
-        // }
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = 'halus.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
 
         // function shareToWhatsApp() {
         //   canvas.toBlob(function(blob) {
@@ -225,13 +225,31 @@
         //     }
         //   });
         // }
+
+        // url not working
+        // function shareToWhatsApp() {
+        //     canvas.toBlob(function(blob) {
+        //         const url = URL.createObjectURL(blob);
+        //         const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image! ${encodeURIComponent(url)}`;
+        //         window.location.href = whatsappUrl;
+        //         setTimeout(() => URL.revokeObjectURL(url), 100);
+        //     });
+        // }
         function shareToWhatsApp() {
-            canvas.toBlob(function(blob) {
-                const url = URL.createObjectURL(blob);
-                const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image! ${encodeURIComponent(url)}`;
-                window.location.href = whatsappUrl;
-                setTimeout(() => URL.revokeObjectURL(url), 100);
-            });
+          canvas.toBlob(function(blob) {
+            const fileName = 'track-maintenance-image.jpg';
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        
+            const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image!&attachment=${encodeURIComponent(url)}`;
+            window.location.href = whatsappUrl;
+          });
         }
 
         function clearCanvas() {
