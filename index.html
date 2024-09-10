@@ -235,6 +235,25 @@
         //         setTimeout(() => URL.revokeObjectURL(url), 100);
         //     });
         // }
+
+        // very close, just need to attach the picture
+        // function shareToWhatsApp() {
+        //   canvas.toBlob(function(blob) {
+        //     const fileName = 'track-maintenance-image.jpg';
+        //     const url = URL.createObjectURL(blob);
+        //     const link = document.createElement('a');
+        //     link.href = url;
+        //     link.setAttribute('download', fileName);
+        //     document.body.appendChild(link);
+        //     link.click();
+        //     document.body.removeChild(link);
+        //     URL.revokeObjectURL(url);
+        
+        //     const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image!&attachment=${encodeURIComponent(url)}`;
+        //     window.location.href = whatsappUrl;
+        //   });
+        // }
+
         function shareToWhatsApp() {
           canvas.toBlob(function(blob) {
             const fileName = 'track-maintenance-image.jpg';
@@ -246,8 +265,11 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-        
-            const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image!&attachment=${encodeURIComponent(url)}`;
+            
+            // Upload the blob to a server or cloud storage and get a public URL
+            const publicImageUrl = 'https://your-uploaded-image-url.com/track-maintenance-image.jpg'; // Replace with your uploaded image URL
+            
+            const whatsappUrl = `whatsapp://send?text=Check out this track maintenance image! ${encodeURIComponent(publicImageUrl)}`;
             window.location.href = whatsappUrl;
           });
         }
